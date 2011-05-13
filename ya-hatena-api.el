@@ -18,7 +18,7 @@
 
 (defun yhtn:request (url method &optional extra-headers data)
   (let ((url-request-method method)
-        (url-request-extra-headers (list extra-headers))
+        (url-request-extra-headers extra-headers)
         (url-request-data data))
     ;; (if extra-headers
     ;;     (setq url-request-extra-headers extra-headers))
@@ -45,7 +45,7 @@
 (defun yhtn:d:post-blog-collection (title content &optional updated)
   (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/blog"))
         (method "POST")
-        (wsse (yhtn:x-wsse yhtn:username yhtn:passwd))
+        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd)))
         (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
                       "<title>" title "</title>"
                       "<content type=\"text/plain\">" content "</content>"
@@ -58,7 +58,7 @@
 (defun yhtn:d:get-blog-collection ()
   (let ((url "http://d.hatena.ne.jp/r_takaishi/atom/blog")
         (method "GET")
-        (wsse (yhtn:x-wsse yhtn:username yhtn:passwd)))
+        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (filter '(lambda (n) (when (listp n)
                            (equal (car n) 'entry)))
             (cdr (car (yhtn:request url method wsse))))))
@@ -68,14 +68,14 @@
 (defun yhtn:d:get-blog-member (date entry_id)
   (let ((url (concat "http://d.hatena.ne.jp/r_takaishi/atom/blog" "/" date "/" entry_id))
         (method "GET")
-        (wsse (yhtn:x-wsse yhtn:username yhtn:passwd)))
+        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (cdr (car (yhtn:request url method wsse)))))
 
 ;; 日記エントリーのタイトル及び本文の変更 (ブログ メンバURI への PUT)
 (defun yhtn:d:put-blog-member (title content date entry_id &optional updated)
   (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/blog/" date "/" entry_id))
         (method "PUT")
-        (wsse (yhtn:x-wsse yhtn:username yhtn:passwd))
+        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd)))
         (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
                       "<title>" title "</title>"
                       "<content type=\"text/plain\">" content "</content>"
@@ -87,7 +87,7 @@
 (defun yhtn:d:delete-blog-member (date entry_id)
   (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/blog/" date "/" entry_id))
         (method "DELETE")
-        (wsse (yhtn:x-wsse yhtn:username yhtn:passwd)))
+        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (yhtn:request url method wsse)))
 
 ;; 下書きコレクションの操作
@@ -95,7 +95,7 @@
 (defun yhtn:d:post-draft-collection (title content &optional updated)
   (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/draft"))
         (method "POST")
-        (wsse (yhtn:x-wsse yhtn:username yhtn:passwd))
+        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd)))
         (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
                       "<title>" title "</title>"
                       "<content type=\"text/plain\">" content "</content>"
@@ -108,7 +108,7 @@
 (defun yhtn:d:get-draft-collection ()
   (let ((url "http://d.hatena.ne.jp/r_takaishi/atom/draft")
         (method "GET")
-        (wsse (yhtn:x-wsse yhtn:username yhtn:passwd)))
+        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (filter '(lambda (n) (when (listp n)
                            (equal (car n) 'entry)))
             (cdr (car (yhtn:request url method wsse))))))
@@ -118,26 +118,29 @@
 (defun yhtn:d:get-draft-member (date entry_id)
   (let ((url (concat "http://d.hatena.ne.jp/r_takaishi/atom/draft" "/" date "/" entry_id))
         (method "GET")
-        (wsse (yhtn:x-wsse yhtn:username yhtn:passwd)))
+        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (cdr (car (yhtn:request url method wsse)))))
 
 ;; 日記エントリーのタイトル及び本文の変更 (ブログ メンバURI への PUT)
-(defun yhtn:d:put-draft-member (title content date entry_id &optional updated)
-  (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/draft/" date "/" entry_id))
+(defun yhtn:d:put-draft-member (title content date entry_id &optional updated publish?)
+  (let* ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/draft/" date "/" entry_id))
         (method "PUT")
         (wsse (yhtn:x-wsse yhtn:username yhtn:passwd))
+        (header (if publish?
+                    (list (cons "X-HATENA-PUBLISH" "1") wsse)
+                  (list wsse)))
         (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
                       "<title>" title "</title>"
                       "<content type=\"text/plain\">" content "</content>"
                       (if updated updated)
                       "</entry>")))
-    (cdr (car (yhtn:request url method wsse data)))))
+    (cdr (car (yhtn:request url method header data)))))
 
 ;; 日記エントリーの削除 (ブログ メンバURI への DELETE)
 (defun yhtn:d:delete-draft-member (date entry_id)
   (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/draft/" date "/" entry_id))
         (method "DELETE")
-        (wsse (yhtn:x-wsse yhtn:username yhtn:passwd)))
+        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (yhtn:request url method wsse)))
 
 
