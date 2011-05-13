@@ -90,5 +90,55 @@
         (wsse (yhtn:x-wsse yhtn:username yhtn:passwd)))
     (yhtn:request url method wsse)))
 
+;; 下書きコレクションの操作
+;; 新規下書きエントリーの投稿 (下書きコレクションURI への POST)
+(defun yhtn:d:post-draft-collection (title content &optional updated)
+  (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/draft"))
+        (method "POST")
+        (wsse (yhtn:x-wsse yhtn:username yhtn:passwd))
+        (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
+                      "<title>" title "</title>"
+                      "<content type=\"text/plain\">" content "</content>"
+                      (if updated updated)
+                      "</entry>")))
+    (yhtn:request url method wsse data)))
+
+
+;; 日記エントリーの一覧の取得 (ブログ コレクションURI への GET)
+(defun yhtn:d:get-blog-collection ()
+  (let ((url "http://d.hatena.ne.jp/r_takaishi/atom/draft")
+        (method "GET")
+        (wsse (yhtn:x-wsse yhtn:username yhtn:passwd)))
+    (filter '(lambda (n) (when (listp n)
+                           (equal (car n) 'entry)))
+            (cdr (car (yhtn:request url method wsse))))))
+
+
+;; 日記エントリーの取得 (ブログ メンバURI の GET)
+(defun yhtn:d:get-blog-member (date entry_id)
+  (let ((url (concat "http://d.hatena.ne.jp/r_takaishi/atom/draft" "/" date "/" entry_id))
+        (method "GET")
+        (wsse (yhtn:x-wsse yhtn:username yhtn:passwd)))
+    (cdr (car (yhtn:request url method wsse)))))
+
+;; 日記エントリーのタイトル及び本文の変更 (ブログ メンバURI への PUT)
+(defun yhtn:d:put-blog-member (title content date entry_id &optional updated)
+  (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/draft/" date "/" entry_id))
+        (method "PUT")
+        (wsse (yhtn:x-wsse yhtn:username yhtn:passwd))
+        (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
+                      "<title>" title "</title>"
+                      "<content type=\"text/plain\">" content "</content>"
+                      (if updated updated)
+                      "</entry>")))
+    (cdr (car (yhtn:request url method wsse data)))))
+
+;; 日記エントリーの削除 (ブログ メンバURI への DELETE)
+(defun yhtn:d:delete-blog-member (date entry_id)
+  (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/draft/" date "/" entry_id))
+        (method "DELETE")
+        (wsse (yhtn:x-wsse yhtn:username yhtn:passwd)))
+    (yhtn:request url method wsse)))
+
 
 (provide 'ya-hatena-api)
