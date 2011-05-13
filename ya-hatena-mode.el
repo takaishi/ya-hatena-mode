@@ -1,8 +1,7 @@
+(add-to-list 'load-path "~/code/elisp/ya-hatena-mode")
 (require 'ya-hatena-api)
 (require 'xml)
 (require 'el-expectations)
-
-(add-to-list 'load-path "~/code/elisp/ya-hatena-mode")
 (require 'sxml)
 
 (expectations
@@ -45,28 +44,6 @@
           (cons (cons 'ya-hatena-mode ya-hatena-mode-map)
                 minor-mode-map-alist))))
 
-
-
-
-
-;(htn:x-wsse "r_takaishi" "believe")
-;(htn:request "http://f.hatena.ne.jp/atom/feed" (htn:x-wsse "r_takaishi" "believe"))
-
-;; (let* ((url-request-method "POST")
-;;       (url-request-extra-headers (list (htn:x-wsse "r_takaishi" "believe")))
-;;       (title "glenda")
-;;       (file (base64-encode-string
-;;              (with-temp-buffer
-;;                (insert-file-contents "~/Glenda_flash.jpg")
-;;                (buffer-substring-no-properties (point-min) (point-max)))))
-;;       (url-request-data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
-;;                                 "<title>" title "</title>"
-;;                                 "<content mode=\"base64\" type=\"image/jpeg\">" file "</content>"
-;;                                 "</entry>")))
-;;   (switch-to-buffer (url-retrieve-synchronously "http://f.hatena.ne.jp/atom/post")))
-
-
-
 ;; 投稿コマンド
 ;; 新規エントリを作成する
 (defun yyhtn:d:new-entry ()
@@ -79,7 +56,7 @@
 ;; バッファを新規エントリとしてポストする
 (defun yhtn:d:post-blog-collection-buffer ()
   (let ((title "")
-        (body ((message "a"))
+        (body ((message "a"))))))
 (defun yhtn:d:post-blog-collection-region () (message "a"))
 ;; (defun my-org-export-html (beg end)
 ;;   (interactive "r")
