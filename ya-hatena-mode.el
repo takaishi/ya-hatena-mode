@@ -137,8 +137,30 @@
                                                (entry_id (nth 3 entry)))
                                           (message (yhtn:d:delete-blog-member date entry_id))))))))
 
+(setq anything-c-source-hatena-draft-entries
+      '((name . "Hatena Diary")
+        (init . (lambda () (with-current-buffer (anything-candidate-buffer 'global)
+                             (let ((e (yhtn:d:get-blog-member-for-anything (yhtn:d:get-draft-collection))));;yhtn:entries)))
+                               (while e
+                                 (insert (concat (car e) "\n"))
+                                 (setq e (cdr e)))))))
+        (candidates-in-buffer)
+        (real-to-display . (lambda (c)
+                             (let ((l (eval-string c)))
+                               (format "%s %s" (nth 0 l) (nth 1 l)))))
+        (action ("View"   . (lambda (c) (let* ((entry (eval-string c))
+                                               (date  (nth 2 entry))
+                                               (entry_id (nth 3 entry)))
+                                          (yhtn:d:view-entry (yhtn:d:get-blog-member date entry_id)))))
+                ("Edit"   . (lambda (c)))
+                ("Delete" . (lambda (c) (let* ((entry (eval-string c))
+                                               (date  (nth 2 entry))
+                                               (entry_id (nth 3 entry)))
+                                          (message (yhtn:d:delete-blog-member date entry_id))))))))
+
 ;; (setq yhtn:test-entry (yhtn:d:get-blog-member "20110427" "1303867061"))
 ;;(anything anything-c-source-hatena-diary-entries) 
+;;(anything anything-c-source-hatena-draft-entries) 
 ;; (eval-string (car (yhtn:d:get-blog-member-for-anything yhtn:entries)))
 
 ;; (insert (format "%S" yhtn:test-entry))
