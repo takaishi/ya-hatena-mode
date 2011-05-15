@@ -116,14 +116,14 @@
 
 ;; 日記エントリーの取得 (ブログ メンバURI の GET)
 (defun yhtn:d:get-draft-member (date entry_id)
-  (let ((url (concat "http://d.hatena.ne.jp/r_takaishi/atom/draft" "/" date "/" entry_id))
+  (let ((url (concat "http://d.hatena.ne.jp/r_takaishi/atom/draft" "/" entry_id))
         (method "GET")
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (cdr (car (yhtn:request url method wsse)))))
 
 ;; 日記エントリーのタイトル及び本文の変更 (ブログ メンバURI への PUT)
 (defun yhtn:d:put-draft-member (title content date entry_id &optional updated publish?)
-  (let* ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/draft/" date "/" entry_id))
+  (let* ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/draft" "/" entry_id))
         (method "PUT")
         (wsse (yhtn:x-wsse yhtn:username yhtn:passwd))
         (header (if publish?
@@ -138,7 +138,7 @@
 
 ;; 日記エントリーの削除 (ブログ メンバURI への DELETE)
 (defun yhtn:d:delete-draft-member (date entry_id)
-  (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/draft/" date "/" entry_id))
+  (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/draft" "/" entry_id))
         (method "DELETE")
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (yhtn:request url method wsse)))
