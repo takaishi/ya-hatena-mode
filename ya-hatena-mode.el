@@ -4,14 +4,10 @@
 (require 'el-expectations)
 (require 'sxml)
 
-(expectations
- (desc "comment")
- (expect '((date . "20110427") (entry_id . "1303867061"))
-   (yhtn:d:get-date-and-entryid-from-id "tag:d.hatena.ne.jp,2011:diary-r_takaishi-20110427-1303867061")))
-
 ;; はてなAPIを使用するための設定項目
 (defvar yhtn:username "")
 (defvar yhtn:passwd "")
+
 (load "./account-info.el")
 
 ;; マイナモード用の設定
@@ -44,22 +40,72 @@
           (cons (cons 'ya-hatena-mode ya-hatena-mode-map)
                 minor-mode-map-alist))))
 
-(defun ya-hatena ()
-  (interactive)
-  (yhtn:d:new-entry))
+;;------------------------------------------------
+;; ユーティリティ
+;;------------------------------------------------
+(defun eval-string (str)
+  (with-temp-buffer
+    (insert str)
+    (read (buffer-string))))
 
+(defun to-utf8 (s)
+  (decode-coding-string s 'utf-8))
 
-;; 投稿コマンド
-;; 新規エントリを作成する
+(defun yhtn:d:get-date-and-entryid-from-id (id)
+  "\"tag:d.hatena.ne.jp,2008:diary-{はてなID}-{date}-{entry_id}\"
+=> ((date . \"{date}\") (entry_id . \"{entry_id}\"))"
+  (let ((l (split-string (car (reverse (split-string id ":"))) "-")))
+    (list (cons 'date (nth 2 l))
+          (cons 'entry_id (nth 3 l)))))
+
+(defun yhtn:d:get-blog-member-for-anything (entries)
+  "取得した記事一覧をAnything向けに加工する．"
+  (mapcar '(lambda (n)
+             (let* ((updated (caddr (assoc 'updated n)))
+                    (title (to-utf8 (caddr (assoc 'title n))))
+                    (date (cdr (assoc 'date (yhtn:d:get-date-and-entryid-from-id (caddr (assoc 'id n))))))
+                    (entry_id (cdr (assoc 'entry_id (yhtn:d:get-date-and-entryid-from-id (caddr (assoc 'id n)))))))
+               (decode-coding-string
+                (format "%S" (list updated title date entry_id))
+                'utf-8))) entries))
+
+(defun yhtn:d:view-entry (entry)
+  "エントリを閲覧する．"
+  (let ((title (to-utf8 (caddr (assoc 'title entry))))
+        (content (to-utf8 (caddr (if (assoc 'hatena:syntax entry)
+                                     (assoc 'hatena:syntax entry)
+                                   (assoc 'content entry)))))
+        (buf (get-buffer-create "*yhtn:d:view*")))
+    (with-current-buffer buf
+      (switch-to-buffer buf)
+      (insert title)
+      (insert content))))
+
+;;------------------------------------------------
+;; 各種コマンド
+;;------------------------------------------------
+
 (defun yhtn:d:new-entry ()
-  (interactive)
+  "新規エントリを作成する"
   (let ((buf (get-buffer-create "*hatena-diary*")))
     (with-current-buffer buf
       (ya-hatena-mode)
       (switch-to-buffer buf))))
 
-;; バッファを新規エントリとしてポストする
+(defun yhtn:d:post-draft-collection-buffer ()
+  "バッファを新規下書きとしてポストする"
+  (interactive)
+  (if (string= (buffer-name) "*hatena-diary*")
+      (let* ((text (split-string (replace-regexp-in-string "\n" "\n\r"
+                                                           (buffer-substring-no-properties (point-min) (point-max))) "\r"))
+             (title (let () (string-match "\\*\\(.*\\)" (car text)) (match-string 1 (car text))))
+             (body (mapconcat 'concat (cdr text) "")))
+        (yhtn:d:post-draft-collection title body)
+        (kill-buffer (current-buffer)))
+    (message "*hatena-diary* バッファではないので終了します")))
+
 (defun yhtn:d:post-blog-collection-buffer ()
+  "バッファを新規エントリとしてポストする"
   (interactive)
   (if (string= (buffer-name) "*hatena-diary*")
       (let* ((text (split-string (replace-regexp-in-string "\n" "\n\r"
@@ -70,65 +116,21 @@
         (kill-buffer (current-buffer)))
     (message "*hatena-diary* バッファではないので終了します")))
 
+;; (defun yhtn:d:get-blog-member-titles ()
+;;   (mapcar '(lambda (n) (decode-coding-string
+;;                         (caddr (assoc 'title n))
+;;                         'utf-8))
+;;           (yhtn:d:get-blog-collection)))
 
-(defun yhtn:d:post-blog-collection-region () (message "a"))
-;; (defun my-org-export-html (beg end)
-;;   (interactive "r")
-;;   (org-export-region-as-html beg end t 'string))
-;; (yhtn:d:post-blog-collection "TEST" "This is a test")
-;; (yhtn:d:put-blog-member "put" "hogehoaaaa" "20110427" "1303881762")
+;; (defun yhtn:d:get-blog-member-updated ()
+;;   (mapcar '(lambda (n) (decode-coding-string
+;;                         (caddr (assoc 'updated n))
+;;                         'utf-8)) yhtn:entries))
 
 
-(defun yhtn:d:search-entry (key value entries)
-  (let ((k key)
-        (v value)
-        (l entries))
-    (filter '(lambda (e)
-               (string= (decode-coding-string
-                         (caddr (assoc k e))
-                         'utf-8) v))
-            l)))
-
-;; (defmacro htn:d:define-get-entry-element-method (elem)
-;;   (eval `(defun ,(intern (concat "htn:d:get-entry-" elem)) ()
-;;            (mapcar '(lambda (n) (decode-coding-string
-;;                                  (caddr (assoc ,(make-symbol elem) n))
-;;                                  'utf-8))
-;;                    (htn:d:get-entries)))))
-
-(defun yhtn:d:get-date-and-entryid-from-id (id)
-  (let ((l (split-string (car (reverse (split-string id ":"))) "-")))
-    (list (cons 'date (nth 2 l))
-          (cons 'entry_id (nth 3 l)))))
-
-(defun yhtn:d:get-blog-member-titles ()
-  (mapcar '(lambda (n) (decode-coding-string
-                        (caddr (assoc 'title n))
-                        'utf-8))
-          (yhtn:d:get-blog-collection)))
-
-(defun yhtn:d:get-blog-member-updated ()
-  (mapcar '(lambda (n) (decode-coding-string
-                        (caddr (assoc 'updated n))
-                        'utf-8)) yhtn:entries))
-
-(defun yhtn:d:get-blog-member-for-anything (entries)
-  (mapcar '(lambda (n)
-             (let* ((updated (caddr (assoc 'updated n)))
-                    (title (to-utf8 (caddr (assoc 'title n))))
-                    (date (cdr (assoc 'date (yhtn:d:get-date-and-entryid-from-id (caddr (assoc 'id n))))))
-                    (entry_id (cdr (assoc 'entry_id (yhtn:d:get-date-and-entryid-from-id (caddr (assoc 'id n)))))))
-               (decode-coding-string
-                (format "%S" (list updated title date entry_id))
-                ;;(format "%s|%s|%s|%s" updated title date entry_id)
-                'utf-8))) entries))
-;;(setq yhtn:entries (yhtn:d:get-blog-collection))
-;;(yhtn:d:get-blog-member-for-anything yhtn:entries)
-  (defun eval-string (str)
-  (with-temp-buffer
-    (insert str)
-    (read (buffer-string))))
-
+;;------------------------------------------------
+;; Anything
+;;------------------------------------------------
 (defvar yhtn:menu '(("はてなダイアリー : 新しく日記を書く" . (yhtn:d:new-entry))
                     ("はてなダイアリー : 日記一覧を見る"   . (anything anything-c-source-hatena-diary-entries))
                     ("はてなダイアリー : 下書き一覧を見る" . (anything anything-c-source-hatena-draft-entries))))
@@ -195,39 +197,16 @@
                                                (entry_id (nth 3 entry)))
                                           (yhtn:d:view-entry (yhtn:d:get-draft-member date entry_id)))))))
 
-;; (setq yhtn:test-entry (yhtn:d:get-blog-member "20110427" "1303867061"))
-;;(anything anything-c-source-hatena-diary-entries) 
-;;(anything anything-c-source-hatena-draft-entries)
-;; (eval-string (car (yhtn:d:get-blog-member-for-anything yhtn:entries)))
-
-;; (insert (format "%S" yhtn:test-entry))
-;; (to-utf8 (car (cdr (cdr (assoc 'hatena:syntax yhtn:test-entry)))))
-;; (yhtn:d:view-entry yhtn:test-entry)
-(defun to-utf8 (s)
-  (decode-coding-string s 'utf-8))
-
-(defun yhtn:d:view-entry (entry)
-  (let ((title (to-utf8 (caddr (assoc 'title entry))))
-        (content (to-utf8 (caddr (if (assoc 'hatena:syntax entry)
-                                     (assoc 'hatena:syntax entry)
-                                   (assoc 'content entry)))))
-        (buf (get-buffer-create "*yhtn:d:view*")))
-    (with-current-buffer buf
-      (switch-to-buffer buf)
-      (insert title)
-      (insert content))))
-
-;(decode-coding-string (cadr  (cdr (assoc 'content (car yhtn:entries)))) 'utf-8)
-
-;(encode-coding-string (assoc "content" (assoc "entry" (cdr yhtn:xml))) 'utf-8)
+(defun ya-hatena ()
+  (interactive)
+  (anything anything-c-source-ya-hatena-menu))
 
 
-;(format-time-string "%Y-%m-%dT%H:%M"(org-time-string-to-time "2011-04-27T10:17:41+09:00 "))
-  
-
-
-;;(parse-time-string "2011-04-27T10:17:41+09:00")
+;; Key Binding
 (ya-hatena-define-mode-map)
-(define-key ya-hatena-mode-map "\C-cp" 'ya-hatena-post-new-entry)
+(define-key ya-hatena-mode-map "\C-cp" 'yhtn:d:post-blog-collection-buffer)
+(define-key ya-hatena-mode-map "\C-cd" 'yhtn:d:post-draft-collection-buffer)
 (define-key ya-hatena-mode-map [left] 'ya-hatena-post-new-entry)
+
+
 (provide 'ya-hatena-mode)
