@@ -43,6 +43,7 @@
 ;;------------------------------------------------
 ;; ユーティリティ
 ;;------------------------------------------------
+(defvar *yhtn:d:buf-edit* "*yhtn:d:edit*")
 (defun eval-string (str)
   (with-temp-buffer
     (insert str)
@@ -87,8 +88,15 @@
         (content (to-utf8 (caddr (if (assoc 'hatena:syntax entry)
                                      (assoc 'hatena:syntax entry)
                                    (assoc 'content entry)))))
-        (buf (get-buffer-create "*yhtn:d:edit*")))
+        (date (assoc 'date (yhtn:d:get-date-and-entryid-from-id (nth 2 (assoc 'id entry)))))
+        (id (assoc 'entry_id (yhtn:d:get-date-and-entryid-from-id (nth 2 (assoc 'id entry)))))
+        (buf (get-buffer-create *yhtn:d:buf-edit*)))
     (with-current-buffer buf
+      (make-local-variable 'yhtn:d:date)
+      (make-local-variable 'yhtn:d:entry_id)
+      (setq yhtn:d:date (cadr date))
+      (setq yhtn:d:entry_id (cadr entry_id))
+      (define-key ya-hatena-mode-map "\C-cp" 'yhtn:d:put-blog-collection-buffer)
       (switch-to-buffer buf)
       (insert (format "*%s\n" title))
       (insert content))))
@@ -116,7 +124,7 @@
         (kill-buffer (current-buffer)))
     (message "*hatena-diary* バッファではないので終了します")))
 
-(defun yhtn:d:post-blog-collection-buffer ()
+(defun yhtn:d:post-blog-collection-buffer (date entry_id)
   "バッファを新規エントリとしてポストする"
   (interactive)
   (if (string= (buffer-name) "*hatena-diary*")
@@ -124,7 +132,33 @@
                                                            (buffer-substring-no-properties (point-min) (point-max))) "\r"))
              (title (let () (string-match "\\*\\(.*\\)" (car text)) (match-string 1 (car text))))
              (body (mapconcat 'concat (cdr text) "")))
-        (yhtn:d:post-blog-collection title body)
+        (yhtn:d:post-blog-collection title body date entry_id)
+        (kill-buffer (current-buffer)))
+    (message "*hatena-diary* バッファではないので終了します")))
+
+(defun yhtn:d:put-draft-collection-buffer (date entry_id)
+  "下書きを更新する"
+  (interactive)
+  (if (string= (buffer-name) *yhtn:d:buf-edit*)
+      (let* ((text (split-string (replace-regexp-in-string "\n" "\n\r"
+                                                           (buffer-substring-no-properties (point-min) (point-max))) "\r"))
+             (title (let () (string-match "\\*\\(.*\\)" (car text)) (match-string 1 (car text))))
+             (body (mapconcat 'concat (cdr text) "")))
+        (yhtn:d:put-draft-member title body date entry_id)
+        (define-key ya-hatena-mode-map "\C-cp" 'yhtn:d:post-draft-collection-buffer)
+        (kill-buffer (current-buffer)))
+    (message "*hatena-diary* バッファではないので終了します")))
+
+(defun yhtn:d:put-blog-collection-buffer ()
+  "下書きを更新する"
+  (interactive)
+  (if (string= (buffer-name) *yhtn:d:buf-edit*)
+      (let* ((text (split-string (replace-regexp-in-string "\n" "\n\r"
+                                                           (buffer-substring-no-properties (point-min) (point-max))) "\r"))
+             (title (let () (string-match "\\*\\(.*\\)" (car text)) (match-string 1 (car text))))
+             (body (mapconcat 'concat (cdr text) "")))
+        (yhtn:d:put-blog-member title body yhtn:d:date yhtn:d:entry_id)
+        (define-key ya-hatena-mode-map "\C-cp" 'yhtn:d:post-blog-collection-buffer)
         (kill-buffer (current-buffer)))
     (message "*hatena-diary* バッファではないので終了します")))
 
