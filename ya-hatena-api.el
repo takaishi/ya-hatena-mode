@@ -30,7 +30,7 @@
             (xml (xml-parse-region (point-min) (point-max))))
         (if (equal xml nil)
             (car txt)
-          xml)))))
+          (cons txt xml))))))
 
 ;; (defun yhtn:request (url wsse)
 ;;   (setq url-request-extra-headers (list wsse))
