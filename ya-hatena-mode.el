@@ -129,6 +129,23 @@
     (insert str)
     (read (buffer-string))))
 
+(defvar yhtn:menu '(("はてなダイアリー : 新しく日記を書く" . (yhtn:d:new-entry))
+                    ("はてなダイアリー : 日記一覧を見る"   . (anything anything-c-source-hatena-diary-entries))
+                    ("はてなダイアリー : 下書き一覧を見る" . (anything anything-c-source-hatena-draft-entries))))
+  
+(setq anything-c-source-ya-hatena-menu
+      '((name . "Hatena")
+        (init . (lambda () (with-current-buffer (anything-candidate-buffer 'global)
+                             (let ((menu yhtn:menu))
+                               (mapc (lambda (m)
+                                       (insert (format "%S\n" m)))
+                                     menu)))))
+        (candidates-in-buffer)
+        (real-to-display . (lambda (c)
+                             (let ((l (eval-string c)))
+                               (format "%s" (car l)))))
+        (action ("Do" . (lambda (c)
+                          (eval (cdr (eval-string c))))))))
 
 (setq anything-c-source-hatena-diary-entries
       '((name . "Hatena Diary")
