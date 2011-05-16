@@ -17,20 +17,22 @@
     x-wsse-list))
 
 (defun yhtn:request (url method &optional extra-headers data)
-  (let ((url-request-method method)
-        (url-request-extra-headers extra-headers)
-        (url-request-data data))
+  (let* ((url-request-method method)
+         (url-request-extra-headers extra-headers)
+         (url-request-data data)
+         (buf (url-retrieve-synchronously url))
     ;; (if extra-headers
     ;;     (setq url-request-extra-headers extra-headers))
     ;; (if data
     ;;     (setq url-request-data data))
-    (with-current-buffer (url-retrieve-synchronously url)
-      (pop-to-buffer (current-buffer))
-      (let ((txt (split-string (buffer-substring-no-properties (point-min) (point-max)) "\n"))
-            (xml (xml-parse-region (point-min) (point-max))))
-        (if (equal xml nil)
-            (car txt)
-          (cons txt xml))))))
+         (res (with-current-buffer buf
+                (let ((txt (split-string (buffer-substring-no-properties (point-min) (point-max)) "\n"))
+                      (xml (xml-parse-region (point-min) (point-max))))
+                  (if (equal xml nil)
+                      (car txt)
+                    (cons txt xml))))))
+    (kill-buffer buf)
+    res))
 
 ;; (defun yhtn:request (url wsse)
 ;;   (setq url-request-extra-headers (list wsse))
