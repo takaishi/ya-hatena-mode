@@ -7,8 +7,9 @@
 ;; はてなAPIを使用するための設定項目
 (defvar yhtn:username "")
 (defvar yhtn:passwd "")
+(defvar *yhtn:account-info-file* "./account-info.el")
 
-(load "./account-info.el")
+(load *yhtn:account-info-file*)
 
 ;; マイナモード用の設定
 (defvar ya-hatena-mode nil)
