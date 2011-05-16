@@ -71,7 +71,7 @@
   (let ((url (concat "http://d.hatena.ne.jp/r_takaishi/atom/blog" "/" date "/" entry_id))
         (method "GET")
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
-    (cdr (car (yhtn:request url method wsse)))))
+    (cdr (car (cdr (yhtn:request url method wsse))))))
 
 ;; 日記エントリーのタイトル及び本文の変更 (ブログ メンバURI への PUT)
 (defun yhtn:d:put-blog-member (title content date entry_id &optional updated)
