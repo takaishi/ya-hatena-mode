@@ -78,7 +78,19 @@
         (buf (get-buffer-create "*yhtn:d:view*")))
     (with-current-buffer buf
       (switch-to-buffer buf)
-      (insert title)
+      (insert (format "*%s\n" title))
+      (insert content))))
+
+(defun yhtn:d:edit-entry (entry)
+  "エントリを編集する．"
+  (let ((title (to-utf8 (caddr (assoc 'title entry))))
+        (content (to-utf8 (caddr (if (assoc 'hatena:syntax entry)
+                                     (assoc 'hatena:syntax entry)
+                                   (assoc 'content entry)))))
+        (buf (get-buffer-create "*yhtn:d:edit*")))
+    (with-current-buffer buf
+      (switch-to-buffer buf)
+      (insert (format "*%s\n" title))
       (insert content))))
 
 ;;------------------------------------------------
@@ -89,7 +101,7 @@
   "新規エントリを作成する"
   (let ((buf (get-buffer-create "*hatena-diary*")))
     (with-current-buffer buf
-      (ya-hatena-mode)
+      (ya-hatena-mode t)
       (switch-to-buffer buf))))
 
 (defun yhtn:d:post-draft-collection-buffer ()
@@ -165,7 +177,10 @@
                                                (date  (nth 2 entry))
                                                (entry_id (nth 3 entry)))
                                           (yhtn:d:view-entry (yhtn:d:get-blog-member date entry_id)))))
-                ("Edit"   . (lambda (c)))
+                ("Edit"   . (lambda (c) (let* ((entry (eval-string c))
+                                               (date  (nth 2 entry))
+                                               (entry_id (nth 3 entry)))
+                                          (yhtn:d:edit-entry (yhtn:d:get-blog-member date entry_id)))))
                 ("Delete" . (lambda (c) (let* ((entry (eval-string c))
                                                (date  (nth 2 entry))
                                                (entry_id (nth 3 entry)))
@@ -186,7 +201,10 @@
                                                (date  (nth 2 entry))
                                                (entry_id (nth 3 entry)))
                                           (yhtn:d:view-entry (yhtn:d:get-draft-member date entry_id)))))
-                ("Edit"   . (lambda (c)))
+                ("Edit"   . (lambda (c)(let* ((entry (eval-string c))
+                                               (date  (nth 2 entry))
+                                               (entry_id (nth 3 entry)))
+                                         (yhtn:d:edit-entry (yhtn:d:get-draft-member date entry_id)))))
                 ("Delete" . (lambda (c) (let* ((entry (eval-string c))
                                                (date  (nth 2 entry))
                                                (entry_id (nth 3 entry)))
