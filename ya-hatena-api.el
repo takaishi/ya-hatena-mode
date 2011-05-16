@@ -63,7 +63,7 @@
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (filter '(lambda (n) (when (listp n)
                            (equal (car n) 'entry)))
-            (cdr (car (yhtn:request url method wsse))))))
+            (cdr (car (cdr (yhtn:request url method wsse)))))))
 
 
 ;; 日記エントリーの取得 (ブログ メンバURI の GET)
@@ -83,14 +83,14 @@
                       "<content type=\"text/plain\">" content "</content>"
                       (if updated updated)
                       "</entry>")))
-    (cdr (car (yhtn:request url method wsse data)))))
+    (cdr (car (cdr (yhtn:request url method wsse data))))))
 
 ;; 日記エントリーの削除 (ブログ メンバURI への DELETE)
 (defun yhtn:d:delete-blog-member (date entry_id)
   (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/blog/" date "/" entry_id))
         (method "DELETE")
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
-    (yhtn:request url method wsse)))
+    (message (caar (yhtn:request url method wsse)))))
 
 ;; 下書きコレクションの操作
 ;; 新規下書きエントリーの投稿 (下書きコレクションURI への POST)
