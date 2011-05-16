@@ -61,11 +61,14 @@
 ;; バッファを新規エントリとしてポストする
 (defun yhtn:d:post-blog-collection-buffer ()
   (interactive)
-  (goto-char (point-min))
-  (let* ((text (split-string (replace-regexp-in-string "\n" "\n\r" (buffer-substring-no-properties (point-min) (point-max))) "\r"))
-         (title (let () (string-match "\\*\\(.*\\)" (car text)) (match-string 1 (car text))))
-         (body (mapconcat 'concat (cdr text) "")))
-    (yhtn:d:post-blog-collection title body)))
+  (if (string= (buffer-name) "*hatena-diary*")
+      (let* ((text (split-string (replace-regexp-in-string "\n" "\n\r"
+                                                           (buffer-substring-no-properties (point-min) (point-max))) "\r"))
+             (title (let () (string-match "\\*\\(.*\\)" (car text)) (match-string 1 (car text))))
+             (body (mapconcat 'concat (cdr text) "")))
+        (yhtn:d:post-blog-collection title body)
+        (kill-buffer (current-buffer)))
+    (message "*hatena-diary* バッファではないので終了します")))
 
 
 (defun yhtn:d:post-blog-collection-region () (message "a"))
