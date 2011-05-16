@@ -80,8 +80,12 @@
         (buf (get-buffer-create "*yhtn:d:view*")))
     (with-current-buffer buf
       (switch-to-buffer buf)
+      (ya-hatena-mode t)
       (insert (format "*%s\n" title))
-      (insert content))))
+      (insert content)
+      (setq buffer-read-only t))))
+
+
 
 (defun yhtn:d:edit-entry (entry)
   "エントリを編集する．"
@@ -162,6 +166,11 @@
         (define-key ya-hatena-mode-map "\C-cp" 'yhtn:d:post-blog-collection-buffer)
         (kill-buffer (current-buffer)))
     (message "*hatena-diary* バッファではないので終了します")))
+
+(defun yhtn:d:quit ()
+  (interactive)
+  (ya-hatena-mode nil)
+  (kill-buffer (current-buffer)))
 
 ;; (defun yhtn:d:get-blog-member-titles ()
 ;;   (mapcar '(lambda (n) (decode-coding-string
@@ -259,6 +268,7 @@
 (ya-hatena-define-mode-map)
 (define-key ya-hatena-mode-map "\C-cp" 'yhtn:d:post-blog-collection-buffer)
 (define-key ya-hatena-mode-map "\C-cd" 'yhtn:d:post-draft-collection-buffer)
+(define-key ya-hatena-mode-map "\C-cq" 'yhtn:d:quit)
 (define-key ya-hatena-mode-map [left] 'ya-hatena-post-new-entry)
 
 
