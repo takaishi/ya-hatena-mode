@@ -44,9 +44,14 @@
           (cons (cons 'ya-hatena-mode ya-hatena-mode-map)
                 minor-mode-map-alist))))
 
+(defun ya-hatena ()
+  (interactive)
+  (yhtn:d:new-entry))
+
+
 ;; 投稿コマンド
 ;; 新規エントリを作成する
-(defun yyhtn:d:new-entry ()
+(defun yhtn:d:new-entry ()
   (interactive)
   (let ((buf (get-buffer-create "*hatena-diary*")))
     (with-current-buffer buf
@@ -55,8 +60,14 @@
 
 ;; バッファを新規エントリとしてポストする
 (defun yhtn:d:post-blog-collection-buffer ()
-  (let ((title "")
-        (body ((message "a"))))))
+  (interactive)
+  (goto-char (point-min))
+  (let* ((text (split-string (replace-regexp-in-string "\n" "\n\r" (buffer-substring-no-properties (point-min) (point-max))) "\r"))
+         (title (let () (string-match "\\*\\(.*\\)" (car text)) (match-string 1 (car text))))
+         (body (mapconcat 'concat (cdr text) "")))
+    (yhtn:d:post-blog-collection title body)))
+
+
 (defun yhtn:d:post-blog-collection-region () (message "a"))
 ;; (defun my-org-export-html (beg end)
 ;;   (interactive "r")
@@ -124,6 +135,7 @@
                                  (insert (concat (car e) "\n"))
                                  (setq e (cdr e)))))))
         (candidates-in-buffer)
+
         (real-to-display . (lambda (c)
                              (let ((l (eval-string c)))
                                (format "%s %s" (nth 0 l) (nth 1 l)))))
