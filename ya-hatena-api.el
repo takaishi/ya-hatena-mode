@@ -51,7 +51,7 @@
                       "<content type=\"text/plain\">" content "</content>"
                       (if updated updated)
                       "</entry>")))
-    (yhtn:request url method wsse data)))
+    (message (caar (yhtn:request url method wsse data)))))
 
 
 ;; 日記エントリーの一覧の取得 (ブログ コレクションURI への GET)
