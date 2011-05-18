@@ -28,9 +28,9 @@
          (res (with-current-buffer buf
                 (let ((txt (split-string (buffer-substring-no-properties (point-min) (point-max)) "\n"))
                       (xml (xml-parse-region (point-min) (point-max))))
-                  (if (equal xml nil)
-                      (car txt)
-                    (cons txt xml))))))
+                  ;; (if (equal xml nil)
+                  ;;     (car txt)
+                    (cons txt xml)))))
     (kill-buffer buf)
     res))
 
@@ -83,7 +83,8 @@
                       "<content type=\"text/plain\">" content "</content>"
                       (if updated updated)
                       "</entry>")))
-    (cdr (car (cdr (yhtn:request url method wsse data))))))
+    (message (caar (yhtn:request url method wsse data)))))
+;;(cdr (car (cdr (yhtn:request url method wsse data))))))
 
 ;; 日記エントリーの削除 (ブログ メンバURI への DELETE)
 (defun yhtn:d:delete-blog-member (date entry_id)
@@ -103,7 +104,7 @@
                       "<content type=\"text/plain\">" content "</content>"
                       (if updated updated)
                       "</entry>")))
-    (yhtn:request url method wsse data)))
+    (message (caar (yhtn:request url method wsse data)))))
 
 
 ;; 日記エントリーの一覧の取得 (ブログ コレクションURI への GET)
@@ -113,7 +114,7 @@
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (filter '(lambda (n) (when (listp n)
                            (equal (car n) 'entry)))
-            (cdr (car (yhtn:request url method wsse))))))
+            (cdr (car (cdr (yhtn:request url method wsse)))))))
 
 
 ;; 日記エントリーの取得 (ブログ メンバURI の GET)
@@ -121,7 +122,7 @@
   (let ((url (concat "http://d.hatena.ne.jp/r_takaishi/atom/draft" "/" entry_id))
         (method "GET")
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
-    (cdr (car (yhtn:request url method wsse)))))
+    (cdr (car (cdr (yhtn:request url method wsse))))))
 
 ;; 日記エントリーのタイトル及び本文の変更 (ブログ メンバURI への PUT)
 (defun yhtn:d:put-draft-member (title content date entry_id &optional updated publish?)
@@ -136,14 +137,14 @@
                       "<content type=\"text/plain\">" content "</content>"
                       (if updated updated)
                       "</entry>")))
-    (cdr (car (yhtn:request url method header data)))))
+    (message (caar (yhtn:request url method header data)))))
 
 ;; 日記エントリーの削除 (ブログ メンバURI への DELETE)
 (defun yhtn:d:delete-draft-member (date entry_id)
   (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/draft" "/" entry_id))
         (method "DELETE")
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
-    (yhtn:request url method wsse)))
+    (message (caar (yhtn:request url method wsse)))))
 
 
 (provide 'ya-hatena-api)
