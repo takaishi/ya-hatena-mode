@@ -1,13 +1,11 @@
-(add-to-list 'load-path "~/code/elisp/ya-hatena-mode")
 (require 'ya-hatena-api)
 (require 'xml)
-(require 'el-expectations)
 (require 'sxml)
 
 ;; はてなAPIを使用するための設定項目
 (defvar yhtn:username "")
 (defvar yhtn:passwd "")
-(defvar *yhtn:account-info-file* "~/account-info.el")
+(defvar *yhtn:account-info-file* "~/.yhtn:account-info.el")
 
 (load *yhtn:account-info-file*)
 
