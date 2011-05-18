@@ -97,10 +97,11 @@
         (id (assoc 'entry_id (yhtn:d:get-date-and-entryid-from-id (nth 2 (assoc 'id entry)))))
         (buf (get-buffer-create *yhtn:d:buf-edit*)))
     (with-current-buffer buf
+      (ya-hatena-mode t)
       (make-local-variable 'yhtn:d:date)
       (make-local-variable 'yhtn:d:entry_id)
-      (setq yhtn:d:date (cadr date))
-      (setq yhtn:d:entry_id (cadr entry_id))
+      (setq yhtn:d:date (cdr date))
+      (setq yhtn:d:entry_id id)
       (define-key ya-hatena-mode-map "\C-cp" 'yhtn:d:put-blog-collection-buffer)
       (switch-to-buffer buf)
       (insert (format "*%s\n" title))
