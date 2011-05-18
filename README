@@ -20,11 +20,21 @@ Emacs向けのはてなダイアリーモード．
 
 * 使い方
 
+** インストール / 設定
+
+ファイルをPATHの通る場所に置いて，.emacsに (require 'ya-hatena) と記述する．
+はてなのアカウントを ~*yhtn:account-info-file*~ に記述する．デフォルトでは "~/.yhtn:account-info.el" である．
+
+: (setq yhtn:username "hatena_taro")
+: (setq yhtn:passwd "thisispasswd")
+
+** 最初の一歩
+
 メニューを表示するには以下のコマンドを実行．
 
 : M-x ya-hatena
 
-Anytingが起動し，以下の項目が表示される
+Anytingが起動し，以下の項目が表示される．
 
 - はてなダイアリー : 新しく日記を書く
 - はてなダイアリー : 日記一覧を見る
