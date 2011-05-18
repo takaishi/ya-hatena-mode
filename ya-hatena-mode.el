@@ -7,7 +7,7 @@
 ;; はてなAPIを使用するための設定項目
 (defvar yhtn:username "")
 (defvar yhtn:passwd "")
-(defvar *yhtn:account-info-file* "./account-info.el")
+(defvar *yhtn:account-info-file* "~/account-info.el")
 
 (load *yhtn:account-info-file*)
 
@@ -101,7 +101,7 @@
       (make-local-variable 'yhtn:d:date)
       (make-local-variable 'yhtn:d:entry_id)
       (setq yhtn:d:date (cdr date))
-      (setq yhtn:d:entry_id id)
+      (setq yhtn:d:entry_id (cdr id))
       (define-key ya-hatena-mode-map "\C-cp" 'yhtn:d:put-blog-collection-buffer)
       (switch-to-buffer buf)
       (insert (format "*%s\n" title))
@@ -130,7 +130,7 @@
         (kill-buffer (current-buffer)))
     (message "*hatena-diary* バッファではないので終了します")))
 
-(defun yhtn:d:post-blog-collection-buffer (date entry_id)
+(defun yhtn:d:post-blog-collection-buffer ()
   "バッファを新規エントリとしてポストする"
   (interactive)
   (if (string= (buffer-name) "*hatena-diary*")
@@ -138,7 +138,7 @@
                                                            (buffer-substring-no-properties (point-min) (point-max))) "\r"))
              (title (let () (string-match "\\*\\(.*\\)" (car text)) (match-string 1 (car text))))
              (body (mapconcat 'concat (cdr text) "")))
-        (yhtn:d:post-blog-collection title body date entry_id)
+        (yhtn:d:post-blog-collection title body)
         (kill-buffer (current-buffer)))
     (message "*hatena-diary* バッファではないので終了します")))
 
@@ -191,7 +191,25 @@
 (defvar yhtn:menu '(("はてなダイアリー : 新しく日記を書く" . (yhtn:d:new-entry))
                     ("はてなダイアリー : 日記一覧を見る"   . (anything anything-c-source-hatena-diary-entries))
                     ("はてなダイアリー : 下書き一覧を見る" . (anything anything-c-source-hatena-draft-entries))))
-  
+
+(defvar yhtn:d:action '(("記事を投稿する" . (yhtn:d:post-blog-collection-buffer))
+                        ("記事を下書きとして保存する" . (yhtn:d:post-draft-collection-buffer))
+                        ("編集を終了する(書いた内容は保存されません)" . (yhtn:d:quit))))
+
+(setq anything-c-source-ya-hatena-diary-action
+      '((name . "操作")
+        (init . (lambda () (with-current-buffer (anything-candidate-buffer 'global)
+                             (let ((menu yhtn:d:action))
+                               (mapc (lambda (m)
+                                       (insert (format "%S\n" m)))
+                                     menu)))))
+        (candidates-in-buffer)
+        (real-to-display . (lambda (c)
+                             (let ((l (eval-string c)))
+                               (format "%s" (car l)))))
+        (action ("Do" . (lambda (c)
+                          (eval (cdr (eval-string c))))))))
+
 (setq anything-c-source-ya-hatena-menu
       '((name . "Hatena")
         (init . (lambda () (with-current-buffer (anything-candidate-buffer 'global)
@@ -264,12 +282,16 @@
   (interactive)
   (anything anything-c-source-ya-hatena-menu))
 
+(defun yhtn:d:action ()
+  (interactive)
+  (anything anything-c-source-ya-hatena-diary-action))
 
 ;; Key Binding
 (ya-hatena-define-mode-map)
 (define-key ya-hatena-mode-map "\C-cp" 'yhtn:d:post-blog-collection-buffer)
 (define-key ya-hatena-mode-map "\C-cd" 'yhtn:d:post-draft-collection-buffer)
 (define-key ya-hatena-mode-map "\C-cq" 'yhtn:d:quit)
+(define-key ya-hatena-mode-map "\C-cm" 'yhtn:d:action)
 (define-key ya-hatena-mode-map [left] 'ya-hatena-post-new-entry)
 
 
