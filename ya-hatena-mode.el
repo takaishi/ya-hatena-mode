@@ -49,7 +49,8 @@
     (read (buffer-string))))
 
 (defun to-utf8 (s)
-  (decode-coding-string s 'utf-8))
+  (if (stringp s)
+      (decode-coding-string s 'utf-8)))
 
 (defun yhtn:d:get-date-and-entryid-from-id (id)
   "\"tag:d.hatena.ne.jp,2008:diary-{はてなID}-{date}-{entry_id}\"
