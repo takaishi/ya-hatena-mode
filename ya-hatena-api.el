@@ -53,8 +53,7 @@
                       "<content type=\"text/plain\">" content "</content>"
                       (if updated updated)
                       "</entry>")))
-    (message (caar (yhtn:request url method wsse data)))))
-
+    (message (caar (yhtn:request url method wsse (encode-coding-string data 'utf-8))))))
 
 ;; 日記エントリーの一覧の取得 (ブログ コレクションURI への GET)
 (defun yhtn:d:get-blog-collection ()
@@ -145,6 +144,58 @@
         (method "DELETE")
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (message (caar (yhtn:request url method wsse)))))
+
+;; はてなフォトライフ
+;; 新規写真の投稿
+(defun yhtn:f:post-post-uri (title photo &optional updated)
+  (let ((url (concat "http://f.hatena.ne.jp/atom/post"))
+        (method "POST")
+        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd)))
+        (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
+                      "<title>" title "</title>"
+                      "<content mode=\"base64\" type=\"image/jpeg\">" photo "</content>"
+                      (if updated updated)
+                      "</entry>")))
+    (message (caar (yhtn:request url method wsse data)))))
+
+;; EditURI
+;; 写真の参照
+(defun yhtn:f:get-edit-uri (date entry_id)
+  (let ((url (concat "http://d.hatena.ne.jp/r_takaishi/atom/blog" "/" date "/" entry_id))
+        (method "GET")
+        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
+    (cdr (car (cdr (yhtn:request url method wsse))))))
+
+;; 投稿した写真のタイトルの変更
+(defun yhtn:f:put-edit-uri (title content date entry_id &optional updated)
+  (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/blog/" date "/" entry_id))
+        (method "PUT")
+        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd)))
+        (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
+                      "<title>" title "</title>"
+                      "<content type=\"text/plain\">" content "</content>"
+                      (if updated updated)
+                      "</entry>")))
+    (message (caar (yhtn:request url method wsse data)))))
+;;(cdr (car (cdr (yhtn:request url method wsse data))))))
+
+;; 投稿した写真の削除
+(defun yhtn:f:delete-edit-uri (date entry_id)
+  (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/blog/" date "/" entry_id))
+        (method "DELETE")
+        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
+    (message (caar (yhtn:request url method wsse)))))
+
+;; FeedURI
+;; 最近投稿した写真の一覧の取得
+(defun yhtn:f:get-feed-uri ()
+  (let ((url "http://f.hatena.ne.jp/atom/feed")
+        (method "GET")
+        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
+    (filter '(lambda (n) (when (listp n)
+                           (equal (car n) 'entry)))
+            (cdr (car (cdr (yhtn:request url method wsse)))))))
+
 
 
 (provide 'ya-hatena-api)
