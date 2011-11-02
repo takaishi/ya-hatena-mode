@@ -72,7 +72,7 @@
                       "<content type=\"text/plain\">" content "</content>"
                       (if updated updated)
                       "</entry>")))
-    (message (caar (yhtn:request url method wsse (encode-coding-string data 'utf-8))))))
+    (message (caar (yhtn:request url method wsse data)))))
 
 ;; 日記エントリーの一覧の取得 (ブログ コレクションURI への GET)
 (defun yhtn:d:get-blog-collection ()
