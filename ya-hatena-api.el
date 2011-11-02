@@ -93,7 +93,7 @@
   (let ((url (yhtn:d:blog-member-url date entry_id))
         (method "GET")
         (wsse (yhtn:x-wsse)))
-    (cdr (car (cdr (yhtn:request url method wsse))))))
+    (cadr (yhtn:request url method wsse))))
 
 ;; 日記エントリーのタイトル及び本文の変更 (ブログ メンバURI への PUT)
 (defun yhtn:d:put-blog-member (title content date entry_id &optional updated)
@@ -127,15 +127,17 @@
         (wsse (yhtn:x-wsse)))
     (yhtn:filter '(lambda (n) (when (listp n)
                            (equal (car n) 'entry)))
-            (cdr (car (cdr (yhtn:request url method wsse)))))))
+                 (cdr (car (cdr (yhtn:request url method wsse)))))))
 
 
 ;; 日記エントリーの取得 (ブログ メンバURI の GET)
 (defun yhtn:d:get-draft-member (entry_id)
-  (let ((url (yhtn:d:draft-member-url entry_id))
+  (let* ((url (yhtn:d:draft-member-url entry_id))
         (method "GET")
-        (wsse (yhtn:x-wsse)))
-    (cdr (car (cdr (yhtn:request url method wsse))))))
+        (wsse (yhtn:x-wsse))
+        (result (yhtn:request url method wsse)))
+    (message (caar result))
+    (cadr result)))
 
 ;; 日記エントリーのタイトル及び本文の変更 (ブログ メンバURI への PUT)
 (defun yhtn:d:put-draft-member (title content entry_id &optional updated publish?)
@@ -150,10 +152,12 @@
 
 ;; 日記エントリーの削除 (ブログ メンバURI への DELETE)
 (defun yhtn:d:delete-draft-member (entry_id)
-  (let ((url (yhtn:d:draft-member-url entry_id))
-        (method "DELETE")
-        (wsse (yhtn:x-wsse)))
-    (message (caar (yhtn:request url method wsse)))))
+  (let* ((url (yhtn:d:draft-member-url entry_id))
+         (method "DELETE")
+         (wsse (yhtn:x-wsse))
+         (result (yhtn:request url method wsse)))
+    (message (caar result))
+    (cadr result)))
 
 
 ;; はてなフォトライフ
