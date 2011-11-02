@@ -262,7 +262,7 @@
         (action ("View"   . (lambda (c) (let* ((entry (eval-string c))
                                                (date  (nth 2 entry))
                                                (entry_id (nth 3 entry)))
-                                          (yhtn:d:view-entry (yhtn:d:get-draft-member date entry_id)))))
+                                          (yhtn:d:view-entry (yhtn:d:get-draft-member entry_id)))))
                 ("Edit"   . (lambda (c)(let* ((entry (eval-string c))
                                                (date  (nth 2 entry))
                                                (entry_id (nth 3 entry)))
