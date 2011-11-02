@@ -1,6 +1,11 @@
 (require 'xml)
 ;; ユーティリティ
 
+(defun yhtn:filter (pred ls)
+  (let (a)
+    (dolist (x ls (nreverse a))
+      (and (funcall pred x) (push x a)))))
+
 ;; WSSE認証用のヘッダを生成する
 ;; →を参考にした．Emacs LispでX-WSSE認証をする - Emacs/Lisp/Drill - Emacsグループ - http://emacs.g.hatena.ne.jp/k1LoW/20081112/1226460796
 (defun yhtn:x-wsse (yhtn:username password)
@@ -60,7 +65,7 @@
   (let ((url "http://d.hatena.ne.jp/r_takaishi/atom/blog")
         (method "GET")
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
-    (filter '(lambda (n) (when (listp n)
+    (yhtn:filter '(lambda (n) (when (listp n)
                            (equal (car n) 'entry)))
             (cdr (car (cdr (yhtn:request url method wsse)))))))
 
@@ -111,7 +116,7 @@
   (let ((url "http://d.hatena.ne.jp/r_takaishi/atom/draft")
         (method "GET")
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
-    (filter '(lambda (n) (when (listp n)
+    (yhtn:filter '(lambda (n) (when (listp n)
                            (equal (car n) 'entry)))
             (cdr (car (cdr (yhtn:request url method wsse)))))))
 
@@ -192,7 +197,7 @@
   (let ((url "http://f.hatena.ne.jp/atom/feed")
         (method "GET")
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
-    (filter '(lambda (n) (when (listp n)
+    (yhtn:filter '(lambda (n) (when (listp n)
                            (equal (car n) 'entry)))
             (cdr (car (cdr (yhtn:request url method wsse)))))))
 
