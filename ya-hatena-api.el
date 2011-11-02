@@ -19,7 +19,7 @@
     (dolist (x ls (nreverse a))
       (and (funcall pred x) (push x a)))))
 
-(defun yhtn:x-wsse (yhtn:username password)
+(defun yhtn:x-wsse ()
   " WSSE認証用のヘッダを生成する
 →を参考にした．Emacs LispでX-WSSE認証をする - Emacs/Lisp/Drill - Emacsグループ - http://emacs.g.hatena.ne.jp/k1LoW/20081112/1226460796"
   (let ((created (format-time-string "%Y-%m-%dT%TZ" (current-time)))
@@ -28,11 +28,12 @@
         (x-wsse "")
         (x-wsse-list nil))
     (setq x-wsse (concat "UsernameToken Username=\"" yhtn:username "\", PasswordDigest=\""
-                         (base64-encode-string (sha1-binary (concat nonce created password))) 
+                         (base64-encode-string (sha1-binary (concat nonce created yhtn:passwd))) 
                          "\", Nonce=\""  (base64-encode-string nonce) 
                          "\", Created=\"" created "\""))
     (setq x-wsse-list (cons "X-WSSE" x-wsse))
-    x-wsse-list))
+    (list x-wsse-list)))
+
 
 (defun yhtn:request (url method &optional extra-headers data)
   (let* ((url-request-method method)
@@ -65,7 +66,7 @@
 (defun yhtn:d:post-blog-collection (title content &optional updated)
   (let ((url (yhtn:d:blog-collection-url))
         (method "POST")
-        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd)))
+        (wsse (yhtn:x-wsse))
         (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
                       "<title>" title "</title>"
                       "<content type=\"text/plain\">" content "</content>"
@@ -77,7 +78,7 @@
 (defun yhtn:d:get-blog-collection ()
   (let ((url (yhtn:d:blog-collection-url))
         (method "GET")
-        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
+        (wsse (yhtn:x-wsse)))
     (yhtn:filter '(lambda (n) (when (listp n)
                            (equal (car n) 'entry)))
             (cdr (car (cdr (yhtn:request url method wsse)))))))
@@ -87,14 +88,14 @@
 (defun yhtn:d:get-blog-member (date entry_id)
   (let ((url (yhtn:d:blog-member-url date entry_id))
         (method "GET")
-        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
+        (wsse (yhtn:x-wsse)))
     (cdr (car (cdr (yhtn:request url method wsse))))))
 
 ;; 日記エントリーのタイトル及び本文の変更 (ブログ メンバURI への PUT)
 (defun yhtn:d:put-blog-member (title content date entry_id &optional updated)
   (let ((url (yhtn:d:blog-member-url date entry_id))
         (method "PUT")
-        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd)))
+        (wsse (yhtn:x-wsse))
         (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
                       "<title>" title "</title>"
                       "<content type=\"text/plain\">" content "</content>"
@@ -107,7 +108,7 @@
 (defun yhtn:d:delete-blog-member (date entry_id)
   (let ((url (yhtn:d:blog-member-url date entry_id))
         (method "DELETE")
-        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
+        (wsse (yhtn:x-wsse)))
     (message (caar (yhtn:request url method wsse)))))
 
 ;; 下書きコレクションの操作
@@ -115,7 +116,7 @@
 (defun yhtn:d:post-draft-collection (title content &optional updated)
   (let ((url (yhtn:d:draft-collection-url))
         (method "POST")
-        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd)))
+        (wsse (yhtn:x-wsse))
         (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
                       "<title>" title "</title>"
                       "<content type=\"text/plain\">" content "</content>"
@@ -128,7 +129,7 @@
 (defun yhtn:d:get-draft-collection ()
   (let ((url (yhtn:d:draft-collection-url))
         (method "GET")
-        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
+        (wsse (yhtn:x-wsse)))
     (yhtn:filter '(lambda (n) (when (listp n)
                            (equal (car n) 'entry)))
             (cdr (car (cdr (yhtn:request url method wsse)))))))
@@ -138,14 +139,14 @@
 (defun yhtn:d:get-draft-member (entry_id)
   (let ((url (yhtn:d:draft-member-url entry_id))
         (method "GET")
-        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
+        (wsse (yhtn:x-wsse)))
     (cdr (car (cdr (yhtn:request url method wsse))))))
 
 ;; 日記エントリーのタイトル及び本文の変更 (ブログ メンバURI への PUT)
 (defun yhtn:d:put-draft-member (title content entry_id &optional updated publish?)
   (let* ((url (yhtn:d:draft-member-url entry_id))
         (method "PUT")
-        (wsse (yhtn:x-wsse yhtn:username yhtn:passwd))
+        (wsse (yhtn:x-wsse))
         (header (if publish?
                     (list (cons "X-HATENA-PUBLISH" "1") wsse)
                   (list wsse)))
@@ -160,7 +161,7 @@
 (defun yhtn:d:delete-draft-member (entry_id)
   (let ((url (yhtn:d:draft-member-url entry_id))
         (method "DELETE")
-        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
+        (wsse (yhtn:x-wsse)))
     (message (caar (yhtn:request url method wsse)))))
 
 
@@ -169,7 +170,7 @@
 (defun yhtn:f:post-post-uri (title photo &optional updated)
   (let ((url (concat "http://f.hatena.ne.jp/atom/post"))
         (method "POST")
-        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd)))
+        (wsse (yhtn:x-wsse))
         (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
                       "<title>" title "</title>"
                       "<content mode=\"base64\" type=\"image/jpeg\">" photo "</content>"
@@ -182,14 +183,14 @@
 (defun yhtn:f:get-edit-uri (date entry_id)
   (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/blog" "/" date "/" entry_id))
         (method "GET")
-        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
+        (wsse (yhtn:x-wsse)))
     (cdr (car (cdr (yhtn:request url method wsse))))))
 
 ;; 投稿した写真のタイトルの変更
 (defun yhtn:f:put-edit-uri (title content date entry_id &optional updated)
   (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/blog/" date "/" entry_id))
         (method "PUT")
-        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd)))
+        (wsse (yhtn:x-wsse))
         (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
                       "<title>" title "</title>"
                       "<content type=\"text/plain\">" content "</content>"
@@ -202,7 +203,7 @@
 (defun yhtn:f:delete-edit-uri (date entry_id)
   (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/blog/" date "/" entry_id))
         (method "DELETE")
-        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
+        (wsse (yhtn:x-wsse)))
     (message (caar (yhtn:request url method wsse)))))
 
 ;; FeedURI
@@ -210,7 +211,7 @@
 (defun yhtn:f:get-feed-uri ()
   (let ((url "http://f.hatena.ne.jp/atom/feed")
         (method "GET")
-        (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
+        (wsse (yhtn:x-wsse)))
     (yhtn:filter '(lambda (n) (when (listp n)
                            (equal (car n) 'entry)))
             (cdr (car (cdr (yhtn:request url method wsse)))))))
