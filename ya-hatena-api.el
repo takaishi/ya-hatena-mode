@@ -1,14 +1,14 @@
 (require 'xml)
-;; ユーティリティ
 
+;; ユーティリティ
 (defun yhtn:filter (pred ls)
   (let (a)
     (dolist (x ls (nreverse a))
       (and (funcall pred x) (push x a)))))
 
-;; WSSE認証用のヘッダを生成する
-;; →を参考にした．Emacs LispでX-WSSE認証をする - Emacs/Lisp/Drill - Emacsグループ - http://emacs.g.hatena.ne.jp/k1LoW/20081112/1226460796
 (defun yhtn:x-wsse (yhtn:username password)
+  " WSSE認証用のヘッダを生成する
+→を参考にした．Emacs LispでX-WSSE認証をする - Emacs/Lisp/Drill - Emacsグループ - http://emacs.g.hatena.ne.jp/k1LoW/20081112/1226460796"
   (let ((created (format-time-string "%Y-%m-%dT%TZ" (current-time)))
         (nonce (sha1 (format-time-string "%Y-%m-%dT%T%z" (current-time))))
         (url "http://f.hatena.ne.jp/atom/feed")
@@ -24,7 +24,7 @@
 (defun yhtn:request (url method &optional extra-headers data)
   (let* ((url-request-method method)
          (url-request-extra-headers extra-headers)
-         (url-request-data data)
+         (url-request-data (encode-coding-string (or data "") 'utf-8))
          (buf (url-retrieve-synchronously url))
     ;; (if extra-headers
     ;;     (setq url-request-extra-headers extra-headers))
