@@ -13,6 +13,14 @@
 (defun yhtn:d:draft-member-url (entry_id)
   (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/draft" "/" entry_id))
 
+;; XML
+(defun yhtn:d:data-xml (title content &optional updated)
+  (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
+          "<title>" title "</title>"
+          "<content type=\"text/plain\">" content "</content>"
+          (or updated)
+          "</entry>"))
+
 ;; ユーティリティ
 (defun yhtn:filter (pred ls)
   (let (a)
@@ -67,11 +75,7 @@
   (let ((url (yhtn:d:blog-collection-url))
         (method "POST")
         (wsse (yhtn:x-wsse))
-        (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
-                      "<title>" title "</title>"
-                      "<content type=\"text/plain\">" content "</content>"
-                      (if updated updated)
-                      "</entry>")))
+        (data (yhtn:d:data-xml title content updated)))
     (message (caar (yhtn:request url method wsse data)))))
 
 ;; 日記エントリーの一覧の取得 (ブログ コレクションURI への GET)
@@ -96,13 +100,8 @@
   (let ((url (yhtn:d:blog-member-url date entry_id))
         (method "PUT")
         (wsse (yhtn:x-wsse))
-        (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
-                      "<title>" title "</title>"
-                      "<content type=\"text/plain\">" content "</content>"
-                      (if updated updated)
-                      "</entry>")))
+        (data (yhtn:d:data-xml title content updated)))
     (message (caar (yhtn:request url method wsse data)))))
-;;(cdr (car (cdr (yhtn:request url method wsse data))))))
 
 ;; 日記エントリーの削除 (ブログ メンバURI への DELETE)
 (defun yhtn:d:delete-blog-member (date entry_id)
@@ -117,11 +116,7 @@
   (let ((url (yhtn:d:draft-collection-url))
         (method "POST")
         (wsse (yhtn:x-wsse))
-        (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
-                      "<title>" title "</title>"
-                      "<content type=\"text/plain\">" content "</content>"
-                      (if updated updated)
-                      "</entry>")))
+        (data (yhtn:d:data-xml title content updated)))
     (message (caar (yhtn:request url method wsse data)))))
 
 
@@ -150,11 +145,7 @@
         (header (if publish?
                     (list (cons "X-HATENA-PUBLISH" "1") wsse)
                   (list wsse)))
-        (data (concat "<entry xmlns=\"http://purl.org/atom/ns#\">"
-                      "<title>" title "</title>"
-                      "<content type=\"text/plain\">" content "</content>"
-                      (if updated updated)
-                      "</entry>")))
+        (data (yhtn:d:data-xml title content updated)))
     (message (caar (yhtn:request url method header data)))))
 
 ;; 日記エントリーの削除 (ブログ メンバURI への DELETE)
