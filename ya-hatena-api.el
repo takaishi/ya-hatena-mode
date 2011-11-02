@@ -62,7 +62,7 @@
 
 ;; 日記エントリーの一覧の取得 (ブログ コレクションURI への GET)
 (defun yhtn:d:get-blog-collection ()
-  (let ((url "http://d.hatena.ne.jp/r_takaishi/atom/blog")
+  (let ((url "http://d.hatena.ne.jp/" yhtn:username "/atom/blog")
         (method "GET")
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (yhtn:filter '(lambda (n) (when (listp n)
@@ -72,7 +72,7 @@
 
 ;; 日記エントリーの取得 (ブログ メンバURI の GET)
 (defun yhtn:d:get-blog-member (date entry_id)
-  (let ((url (concat "http://d.hatena.ne.jp/r_takaishi/atom/blog" "/" date "/" entry_id))
+  (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/blog" "/" date "/" entry_id))
         (method "GET")
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (cdr (car (cdr (yhtn:request url method wsse))))))
@@ -113,7 +113,7 @@
 
 ;; 日記エントリーの一覧の取得 (ブログ コレクションURI への GET)
 (defun yhtn:d:get-draft-collection ()
-  (let ((url "http://d.hatena.ne.jp/r_takaishi/atom/draft")
+  (let ((url "http://d.hatena.ne.jp/" yhtn:username "/atom/draft")
         (method "GET")
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (yhtn:filter '(lambda (n) (when (listp n)
@@ -123,7 +123,7 @@
 
 ;; 日記エントリーの取得 (ブログ メンバURI の GET)
 (defun yhtn:d:get-draft-member (date entry_id)
-  (let ((url (concat "http://d.hatena.ne.jp/r_takaishi/atom/draft" "/" entry_id))
+  (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/draft" "/" entry_id))
         (method "GET")
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (cdr (car (cdr (yhtn:request url method wsse))))))
@@ -166,7 +166,7 @@
 ;; EditURI
 ;; 写真の参照
 (defun yhtn:f:get-edit-uri (date entry_id)
-  (let ((url (concat "http://d.hatena.ne.jp/r_takaishi/atom/blog" "/" date "/" entry_id))
+  (let ((url (concat "http://d.hatena.ne.jp/" yhtn:username "/atom/blog" "/" date "/" entry_id))
         (method "GET")
         (wsse (list (yhtn:x-wsse yhtn:username yhtn:passwd))))
     (cdr (car (cdr (yhtn:request url method wsse))))))
