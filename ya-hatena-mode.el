@@ -84,8 +84,14 @@
       (insert content)
       (setq buffer-read-only t))))
 
-
-
+(defun yhtn:d:publish-draft-entry (entry-id)
+  (let* ((entry (yhtn:d:get-draft-member entry-id))
+         (title (to-utf8 (caddr (assoc 'title entry))))
+         (content (to-utf8 (caddr (if (assoc 'hatena:syntax entry)
+                                      (assoc 'hatena:syntax entry)
+                                    (assoc 'content entry))))))
+    (yhtn:d:put-draft-member title content entry-id nil t)))
+    
 (defun yhtn:d:edit-entry (entry)
   "エントリを編集する．"
   (let ((title (to-utf8 (caddr (assoc 'title entry))))
@@ -262,11 +268,13 @@
         (action ("View"    . (lambda (c) (yhtn:d:draft-action c 'yhtn:d:view-entry)))
                 ("Edit"    . (lambda (c) (yhtn:d:draft-action c 'yhtn:d:edit-entry)))
                 ("Delete"  . (lambda (c) (yhtn:d:draft-action c 'yhtn:d:delete-draft-member)))
-                ("Publish" . (lambda (c))))
+                ("Publish" . (lambda (c) (yhtn:d:draft-action c 'yhtn:d:publish-draft-entry))))
         (persistent-action . (lambda (c) (yhtn:d:draft-action c 'yhtn:d:view-entry)))))
 
 (defun yhtn:d:draft-action (c f)
   (if (equal f 'yhtn:d:delete-draft-member)
+      (funcall f (nth 3 (eval-string c))))
+  (if (equal f 'yhtn:d:publish-draft-entry)
       (funcall f (nth 3 (eval-string c))))
   (funcall f (yhtn:d:get-draft-member (nth 3 (eval-string c)))))
 

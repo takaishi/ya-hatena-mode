@@ -145,8 +145,8 @@
         (method "PUT")
         (wsse (yhtn:x-wsse))
         (header (if publish?
-                    (list (cons "X-HATENA-PUBLISH" "1") wsse)
-                  (list wsse)))
+                    (list (cons "X-HATENA-PUBLISH" "1") (car wsse))
+                  wsse))
         (data (yhtn:d:data-xml title content updated)))
     (message (caar (yhtn:request url method header data)))))
 
